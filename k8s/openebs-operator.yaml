@@ -3,7 +3,7 @@
 # Launch the maya-apiserver ( deployment )
 # Launch the maya-storagemanager ( deameon set )
 
-# Create Maya Service Account 
+# Create Maya Service Account
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -22,9 +22,9 @@ metadata:
 rules:
 - apiGroups: ["*"]
   resources: ["nodes","nodes/proxy"]
-  verbs: ["get", "list", "watch"]
+  verbs: ["get","list","watch","create","update"]
 - apiGroups: ["*"]
-  resources: ["services","pods","deployments", "events", "endpoints"]
+  resources: ["namespaces","services","pods","deployments", "events", "endpoints"]
   verbs: ["*"]
 - apiGroups: ["*"]
   resources: ["persistentvolumes","persistentvolumeclaims"]
@@ -32,6 +32,9 @@ rules:
 - apiGroups: ["storage.k8s.io"]
   resources: ["storageclasses"]
   verbs: ["*"]
+- apiGroups: ["apiextensions.k8s.io"]
+  resources: ["customresourcedefinitions"]
+  verbs: [ "get", "list", "create" ]
 - nonResourceURLs: ["/metrics"]
   verbs: ["get"]
 ---
@@ -182,3 +185,26 @@ parameters:
   openebs.io/jiva-replica-count: "2"
   openebs.io/volume-monitor: "true"
   openebs.io/capacity: 5G
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  # name must match the spec fields below, and be in the form: <plural>.<group>
+  name: volumepolicies.openebs.io
+spec:
+  # group name to use for REST API: /apis/<group>/<version>
+  group: openebs.io
+  # version name to use for REST API: /apis/<group>/<version>
+  version: v1alpha1
+  # either Namespaced or Cluster
+  scope: Cluster
+  names:
+    # plural name to be used in the URL: /apis/<group>/<version>/<plural>
+    plural: volumepolicies
+    # singular name to be used as an alias on the CLI and for display
+    singular: volumepolicy
+    # kind is normally the CamelCased singular type. Your resource manifests use this.
+    kind: VolumePolicy
+    # shortNames allow shorter string to match your resource on the CLI
+    shortNames:
+    - vp
